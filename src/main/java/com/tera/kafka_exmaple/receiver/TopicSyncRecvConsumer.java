@@ -23,8 +23,6 @@ public class TopicSyncRecvConsumer {
         try(KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties, new StringDeserializer(), new StringDeserializer())) {
             consumer.subscribe(Collections.singletonList("my-topic"));
             while (true) {
-                // Deprecated
-                // ConsumerRecords<String, String> records = consumer.poll(1_000);
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1_000));
 
                 if (records.count() > 0) {
