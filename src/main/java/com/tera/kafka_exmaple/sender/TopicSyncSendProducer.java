@@ -4,6 +4,7 @@ import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Future;
@@ -14,10 +15,13 @@ public class TopicSyncSendProducer {
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         //properties.put(ConsumerConfig.GROUP_ID_CONFIG, "myProducerGroup");
 
-        try(KafkaProducer<String, String> producer = new KafkaProducer<>(properties, new StringSerializer(), new StringSerializer())) {
+        try(KafkaProducer<String, String> producer =
+                    new KafkaProducer<>(properties, new StringSerializer(), new StringSerializer())) {
             String key = UUID.randomUUID().toString();
             String value = "hello world";
-            ProducerRecord<String, String> record = new ProducerRecord<>("my-topic", key, value);
+            Date date = new Date(System.currentTimeMillis() + 1000 * 60 * 3);
+            ProducerRecord<String, String> record =
+                    new ProducerRecord<>("my-topic", null, date.getTime(), key, value);
 
             // sync send
             Future<RecordMetadata> send = producer.send(record);
@@ -27,8 +31,7 @@ public class TopicSyncSendProducer {
             System.out.println("topic: " + recordMetadata.topic());
             System.out.println("partition: " + recordMetadata.partition());
             System.out.println("offset: " + recordMetadata.offset());
-
-            System.out.println("send message");
+            System.out.println("timestamp:" + new Date(recordMetadata.timestamp()));
         } catch (Exception e) {
             e.printStackTrace();
         }

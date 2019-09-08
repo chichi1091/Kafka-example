@@ -10,6 +10,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Properties;
 
 public class TopicSyncRecvConsumer {
@@ -20,7 +21,8 @@ public class TopicSyncRecvConsumer {
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
 
-        try(KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties, new StringDeserializer(), new StringDeserializer())) {
+        try(KafkaConsumer<String, String> consumer =
+                    new KafkaConsumer<>(properties, new StringDeserializer(), new StringDeserializer())) {
             consumer.subscribe(Collections.singletonList("my-topic"));
             while (true) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1_000));
@@ -37,11 +39,13 @@ public class TopicSyncRecvConsumer {
                     System.out.println("key: " + record.key());
                     System.out.println("value: " + record.value());
                     System.out.println("offset: " + record.offset());
+                    System.out.println("timestamp:" + new Date(record.timestamp()));
                     TopicPartition topicPartition = new TopicPartition(record.topic(), record.partition());
                     OffsetAndMetadata offsetAndMetadata = consumer.committed(topicPartition);
                     if (offsetAndMetadata != null) {
                         System.out.println("partition offset: " + offsetAndMetadata.offset());
                     }
+                    System.out.println(record.toString());
                 });
             }
         } catch (Exception e) {
